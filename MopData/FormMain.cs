@@ -22,6 +22,9 @@ namespace MopData
 
         private void FormMain_Load(object sender, EventArgs e)
         {
+           
+
+            
         }
 
         private void btn_load_Click(object sender, EventArgs e)
@@ -36,41 +39,53 @@ namespace MopData
         {
             Sql = new SqliteHelper();
             progressBar1.Maximum = File.ReadAllLines(txt_load.Text).Length;
+            
             Task.Factory.StartNew(() =>
             {
+                int num = 0;
                 foreach (var mobile in File.ReadAllLines(txt_load.Text))
                 {
-                    var m = new Mop(mobile);
-                    using (var cmd = new SQLiteCommand(Sql.Conn))
+                    while (num>10)
                     {
-                        cmd.CommandText = $"SELECT * FROM MobileInfo WHERE 手机号={mobile}";
-                        var reader = cmd.ExecuteReader();
-                        if (!reader.HasRows)
+                        Thread.Sleep(1000);
+                    }
+                    Invoke(new Action(() =>
+                    {
+                        num++;
+                        lab_num.Text = num.ToString();
+                    }));
+                    Task.Factory.StartNew(() =>
+                    {
+                        var m = new Mop(mobile);
+                        using (var cmd = new SQLiteCommand(Sql.Conn))
                         {
-                            using (var cmd1 = new SQLiteCommand(Sql.Conn))
+                            cmd.CommandText = $"SELECT * FROM MobileInfo WHERE 手机号={mobile}";
+                            var reader = cmd.ExecuteReader();
+                            if (!reader.HasRows)
                             {
-                                cmd1.CommandText = $"INSERT INTO MobileInfo (手机号) VALUES({mobile})";
-                                cmd1.ExecuteNonQuery();
+                                using (var cmd1 = new SQLiteCommand(Sql.Conn))
+                                {
+                                    cmd1.CommandText = $"INSERT INTO MobileInfo (手机号) VALUES({mobile})";
+                                    cmd1.ExecuteNonQuery();
+                                }
                             }
                         }
-                    }
 
-                    Thread.Sleep(500);
-                    m.GetBaseInfo((response, handle) =>
-                    {
+                        string res = Encoding.GetEncoding("GBK").GetString(m.GetBaseInfo().RawBytes);
+                        if (res.Contains("false"))
+                            return;
                         var userInfo =
-                            JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(
-                                Encoding.GetEncoding("GBK").GetString(response.RawBytes));
+                                JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(
+                                    res);
                         using (var cmd = new SQLiteCommand(Sql.Conn))
                         {
                             cmd.CommandText =
                                 $"UPDATE MobileInfo SET 姓名='{userInfo.userBaseInfo.basicinfo[0].context}',归属='{userInfo.userBaseInfo.basicinfo[3].context}',在用套餐='{userInfo.userBaseInfo.basicinfo[5].context}',用户状态='{userInfo.userBaseInfo.basicinfo[6].context}'  WHERE 手机号={mobile}";
                             cmd.ExecuteNonQuery();
                         }
-                    });
-                    m.GetBusinessInfo((response, handle) =>
-                    {
-                        var businessInfo = Encoding.GetEncoding("GBK").GetString(response.RawBytes);
+
+
+                        var businessInfo = Encoding.GetEncoding("GBK").GetString(m.GetBusinessInfo().RawBytes);
                         var mc = Regex.Matches(businessInfo, "secondvalue\":\"(.*?)\"");
                         var info = new List<string>();
                         foreach (Match match in mc)
@@ -81,17 +96,12 @@ namespace MopData
                                 $"UPDATE MobileInfo SET 业务信息='{string.Join("\n", info.ToArray())}' WHERE 手机号={mobile}";
                             cmd.ExecuteNonQuery();
                         }
-                        Invoke(new Action(() =>
-                        {
-                            progressBar1.PerformStep();
-                            lab_pro.Text = $"{progressBar1.Value} / {progressBar1.Maximum}";
-                        }));
-                    });
-                    m.GetConsumeInfo((response, handle) =>
-                    {
-                        var consumeInfo = Encoding.GetEncoding("GBK").GetString(response.RawBytes);
-                        var mc = Regex.Matches(consumeInfo, "secondvalue\":\"(.*?)\"");
-                        string[] MONTH = {"一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二"};
+                        
+
+
+                        var consumeInfo = Encoding.GetEncoding("GBK").GetString(m.GetConsumeInfo().RawBytes);
+                        mc = Regex.Matches(consumeInfo, "secondvalue\":\"(.*?)\"");
+                        string[] MONTH = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二" };
                         foreach (Match match in mc)
                         {
                             var str = match.Groups[1].Value;
@@ -121,12 +131,11 @@ namespace MopData
                                 }
                             }
                         }
-                    });
-                    m.GetRecomendInfo((response, handle) =>
-                    {
-                        var recommendInfo = Encoding.GetEncoding("GBK").GetString(response.RawBytes);
-                        var mc = Regex.Matches(recommendInfo, "prog_name\":\"(.*?)\"");
-                        var info = new List<string>();
+
+
+                        var recommendInfo = Encoding.GetEncoding("GBK").GetString(m.GetRecomendInfo().RawBytes);
+                        mc = Regex.Matches(recommendInfo, "prog_name\":\"(.*?)\"");
+                        info = new List<string>();
                         foreach (Match match in mc)
                         {
                             var name = match.Groups[1].ToString();
@@ -139,6 +148,16 @@ namespace MopData
                                 $"UPDATE MobileInfo SET 推荐信息='{string.Join("\n", info.ToArray())}' WHERE 手机号={mobile}";
                             cmd.ExecuteNonQuery();
                         }
+
+                    }).ContinueWith((task) =>
+                    {
+                        Invoke(new Action(() =>
+                        {
+                            num--;
+                            progressBar1.PerformStep();
+                            lab_pro.Text = $@"{progressBar1.Value} / {progressBar1.Maximum}";
+                            
+                        }));
                     });
                 }
             });

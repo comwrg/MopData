@@ -33,6 +33,7 @@
             this.btn_begin = new System.Windows.Forms.Button();
             this.progressBar1 = new System.Windows.Forms.ProgressBar();
             this.lab_pro = new System.Windows.Forms.Label();
+            this.lab_num = new System.Windows.Forms.Label();
             this.SuspendLayout();
             // 
             // txt_load
@@ -80,11 +81,21 @@
             this.lab_pro.TabIndex = 4;
             this.lab_pro.Text = "0 / 0";
             // 
+            // lab_num
+            // 
+            this.lab_num.AutoSize = true;
+            this.lab_num.Location = new System.Drawing.Point(411, 62);
+            this.lab_num.Name = "lab_num";
+            this.lab_num.Size = new System.Drawing.Size(13, 13);
+            this.lab_num.TabIndex = 5;
+            this.lab_num.Text = "0";
+            // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(688, 332);
+            this.ClientSize = new System.Drawing.Size(441, 95);
+            this.Controls.Add(this.lab_num);
             this.Controls.Add(this.lab_pro);
             this.Controls.Add(this.progressBar1);
             this.Controls.Add(this.btn_begin);
@@ -105,6 +116,7 @@
         private System.Windows.Forms.Button btn_begin;
         private System.Windows.Forms.ProgressBar progressBar1;
         private System.Windows.Forms.Label lab_pro;
+        private System.Windows.Forms.Label lab_num;
     }
 }
 

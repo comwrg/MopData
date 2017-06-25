@@ -16,8 +16,7 @@ namespace MopData
                 Conn = new SQLiteConnection("Data Source=data.sqlite");
                 Conn.Open();
                 Cmd = new SQLiteCommand(Conn);
-                if (!exist)
-                    Create();
+                Create();
             }
         }
 
@@ -27,7 +26,7 @@ namespace MopData
         public void Create()
         {
             string sql =@"
-            CREATE TABLE NOT EXIST MobileInfo(
+            CREATE TABLE IF NOT EXISTS MobileInfo(
                 手机号 CHAR(11) PRIMARY KEY,
                 姓名 CHAR,
                 归属 CHAR,

@@ -79,8 +79,18 @@ namespace MopData
                                     res);
                         using (var cmd = new SQLiteCommand(Sql.Conn))
                         {
+                            //开打时间 出账类型 集团信息 最晚捆绑时间  
                             cmd.CommandText =
-                                $"UPDATE MobileInfo SET 姓名='{userInfo.userBaseInfo.basicinfo[0].context}',归属='{userInfo.userBaseInfo.basicinfo[3].context}',在用套餐='{userInfo.userBaseInfo.basicinfo[5].context}',用户状态='{userInfo.userBaseInfo.basicinfo[6].context}'  WHERE 手机号={mobile}";
+                                $"UPDATE MobileInfo SET " +
+                                $"姓名='{userInfo.userBaseInfo.basicinfo[0].context}'," +
+                                $"归属='{userInfo.userBaseInfo.basicinfo[3].context}'," +
+                                $"开打时间='{userInfo.userBaseInfo.basicinfo[4].context}'," +
+                                $"在用套餐='{userInfo.userBaseInfo.basicinfo[5].context}'," +
+                                $"用户状态='{userInfo.userBaseInfo.basicinfo[6].context}'," +
+                                $"出账类型='{userInfo.userBaseInfo.basicinfo[7].context}'," +
+                                $"集团信息='{userInfo.userBaseInfo.basicinfo[11].context}'," +
+                                $"最晚捆绑时间='{userInfo.userBaseInfo.basicinfo[14].context}'" +
+                                $"  WHERE 手机号={mobile}";
                             cmd.ExecuteNonQuery();
                         }
 

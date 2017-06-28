@@ -25,13 +25,18 @@ namespace MopData
 
         public void Create()
         {
-            string sql =@"
+            string sql = @"
             CREATE TABLE IF NOT EXISTS MobileInfo(
                 手机号 CHAR(11) PRIMARY KEY,
                 姓名 CHAR,
                 归属 CHAR,
                 在用套餐 CHAR,
                 用户状态 CHAR,
+                开打时间 CHAR,
+                出账类型 CHAR,
+                集团信息 CHAR,
+                最晚捆绑时间 CHAR,
+
                 业务信息 CHAR, 
 
                 一月消费 DOUBLE ,

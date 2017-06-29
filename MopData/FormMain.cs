@@ -22,9 +22,12 @@ namespace MopData
 
         private void FormMain_Load(object sender, EventArgs e)
         {
-           
-
-            
+            // test cookie is it effective
+            if (!(new Mop("")).IsEffective)
+            {
+                MessageBox.Show("COOKIES无效");
+                Application.Exit();
+            }
         }
 
         private void btn_load_Click(object sender, EventArgs e)

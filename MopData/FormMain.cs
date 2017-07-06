@@ -19,11 +19,12 @@ namespace MopData
         }
 
         private SqliteHelper Sql { get; set; }
-
+        private string url { get; set; }
         private void FormMain_Load(object sender, EventArgs e)
         {
+            url = File.ReadAllText("url.txt");
             // test cookie is it effective
-            if (!(new Mop("")).IsEffective)
+            if (!(new Mop("", url)).IsEffective)
             {
                 MessageBox.Show("COOKIES无效");
                 Application.Exit();
@@ -59,7 +60,7 @@ namespace MopData
                     }));
                     Task.Factory.StartNew(() =>
                     {
-                        var m = new Mop(mobile);
+                        var m = new Mop(mobile, url);
                         using (var cmd = new SQLiteCommand(Sql.Conn))
                         {
                             cmd.CommandText = $"SELECT * FROM MobileInfo WHERE 手机号={mobile}";

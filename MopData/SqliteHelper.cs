@@ -8,12 +8,13 @@ namespace MopData
     {
         public SqliteHelper()
         {
+            string filename = $"{DateTime.Now:yyyyMMddHHmmss}.sqlite";
             lock (this)
             {
-                bool exist = File.Exists("data.sqlite");
+                bool exist = File.Exists(filename);
                 if (!exist)
-                    SQLiteConnection.CreateFile("data.sqlite");
-                Conn = new SQLiteConnection("Data Source=data.sqlite");
+                    SQLiteConnection.CreateFile(filename);
+                Conn = new SQLiteConnection($"Data Source={filename}");
                 Conn.Open();
                 Cmd = new SQLiteCommand(Conn);
                 Create();

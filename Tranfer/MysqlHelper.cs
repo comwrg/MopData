@@ -12,7 +12,7 @@ namespace Tranfer
             string database = "mopinfo";
             string user = "dev";
             string pwd = "123456aB";
-            Conn = new MySqlConnection($"SERVER={server};DATABASE={database};UID={user};PASSWORD={pwd};");
+            Conn = new MySqlConnection($"SERVER={server};DATABASE={database};UID={user};PASSWORD={pwd}; convert zero datetime=True;default command timeout=0");
             Conn.Open();
         }
 

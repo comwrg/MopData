@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics.Eventing.Reader;
 using System.IO;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,17 +29,26 @@ namespace Upload
             var lines = File.ReadAllLines(txt_path.Text, Encoding.Default);
             pro.Maximum = lines.Length;
             pro.Value = 0;
+            string str = string.Empty;
+            if (rb_sex.Checked)
+                str = "性别";
+            else if (rb_address.Checked)
+                str = "地址";
+            else if (rb_model.Checked)
+                str = "机型";
+            else
+                return;
             Task.Factory.StartNew(() =>
             {
                 var mysql = new MysqlHelper();
                 foreach (var line in lines)
                 {
                     var arr = line.Split('\t');
-                    if (arr.Length != 4)
+                    if (arr.Length != 2)
                         continue;
-                    for (var i = 0; i < arr.Length; i++)
-                        arr[i] = $"'{arr[i]}'";
-                    mysql.Execute($"INSERT INTO localinfo VALUES({string.Join(",", arr)})");
+
+                    mysql.Execute($"INSERT INTO localinfo (手机号) VALUES('{arr[0]}')");
+                    mysql.Execute($"UPDATE localinfo SET {str}='{arr[1]}'");
                     Invoke(new Action(() => { pro.Value++; }));
                 }
             });

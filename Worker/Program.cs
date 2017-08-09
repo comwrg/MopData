@@ -126,7 +126,7 @@ namespace Worker
             {
                 list[i] = $"'{list[i]}'";
             }
-            Execute($"INSERT INTO baseinfo VALUES({string.Join(",", list.ToArray())})");
+            mysql.Execute($"INSERT INTO baseinfo VALUES({string.Join(",", list.ToArray())})");
             #endregion
 
             #region Business Info
@@ -136,11 +136,11 @@ namespace Worker
             list.Clear();
             foreach (Match match in mc)
                 list.Add($"'{match.Groups[1]}'");
-            Execute($"INSERT INTO businessinfo VALUES('{mobile}', {string.Join("\n", list.ToArray())})");
+            mysql.Execute($"INSERT INTO businessinfo VALUES('{mobile}', {string.Join("\n", list.ToArray())})");
             #endregion
 
             #region Consume Info
-            Execute($"INSERT INTO consumeinfo (手机号) VALUES('{mobile}')");
+            mysql.Execute($"INSERT INTO consumeinfo (手机号) VALUES('{mobile}')");
             var consumeInfo = Encoding.GetEncoding("GBK").GetString(m.GetConsumeInfo().RawBytes);
             mc = Regex.Matches(consumeInfo, "secondvalue\":\"(.*?)\"");
             string[] MONTH = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二" };
@@ -151,7 +151,7 @@ namespace Worker
                 if (m1.Success)
                 {
                     var month = Convert.ToInt32(m1.Groups[1].Value);
-                    Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月消费={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
+                    mysql.Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月消费={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
                     //continue;
                 }
                 //secondvalue=201706/已使用优惠额度/2097.15 MB
@@ -159,7 +159,7 @@ namespace Worker
                 if (m1.Success)
                 {
                     var month = Convert.ToInt32(m1.Groups[1].Value);
-                    Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月流量={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
+                    mysql.Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月流量={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
                 }
             }
 
@@ -176,24 +176,10 @@ namespace Worker
                 if (!string.IsNullOrEmpty(name))
                     list.Add(name);
             }
-            Execute($"INSERT INTO recommendinfo VALUES('{mobile}', '{string.Join("\n", list.ToArray())}')");
+            mysql.Execute($"INSERT INTO recommendinfo VALUES('{mobile}', '{string.Join("\n", list.ToArray())}')");
 
             #endregion
         }
         private static MysqlHelper mysql = new MysqlHelper();
-        private static void Execute(string q)
-        {
-            try
-            {
-                using (var cmd = mysql.Conn.CreateCommand())
-                {
-                    cmd.CommandText = q;
-                    cmd.ExecuteNonQuery();
-                }
-            }
-            catch (Exception)
-            {
-            }
-        }
     }
 }

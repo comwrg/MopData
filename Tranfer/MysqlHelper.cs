@@ -1,4 +1,4 @@
-﻿using MySql.Data;
+﻿using System;
 using MySql.Data.MySqlClient;
 
 namespace Tranfer
@@ -16,5 +16,20 @@ namespace Tranfer
             Conn.Open();
         }
 
+        public void Execute(string q)
+        {
+            try
+            {
+                using (var cmd = Conn.CreateCommand())
+                {
+                    cmd.CommandText = q;
+                    cmd.ExecuteNonQuery();
+                }
+            }
+            catch (Exception)
+            {
+                // ignored
+            }
+        }
     }
 }

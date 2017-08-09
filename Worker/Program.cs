@@ -11,6 +11,7 @@ using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MopData;
+using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Tranfer;
 
@@ -106,34 +107,26 @@ namespace Worker
             var m = new MopData.Mop(mobile, url);
 
             #region Base Info
+
             var res = Encoding.GetEncoding("GBK").GetString(m.GetBaseInfo().RawBytes);
             if (res.Contains("false"))
                 return;
             var userInfo =
                 JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(
                     res);
-            List<string> list = new List<string>();
-            list.Add(mobile);
-            list.Add(userInfo.userBaseInfo.basicinfo[0].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[3].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[4].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[5].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[6].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[7].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[11].context);
-            list.Add(userInfo.userBaseInfo.basicinfo[14].context);
-            for (int i = 0; i < list.Count; i++)
+            mysql.Execute($"INSERT INTO baseinfo (手机号) VALUES({mobile})");
+            foreach (UserBaseInfoJson.Basicinfo basicinfo in userInfo.userBaseInfo.basicinfo)
             {
-                list[i] = $"'{list[i]}'";
+                mysql.Execute($"UPDATE baseinfo SET {basicinfo.title}='{basicinfo.context}'");
             }
-            mysql.Execute($"INSERT INTO baseinfo VALUES({string.Join(",", list.ToArray())})");
+
             #endregion
 
             #region Business Info
 
             var businessInfo = Encoding.GetEncoding("GBK").GetString(m.GetBusinessInfo().RawBytes);
             var mc = Regex.Matches(businessInfo, "secondvalue\":\"(.*?)\"");
-            list.Clear();
+            List<string> list = new List<string>();
             foreach (Match match in mc)
                 list.Add($"'{match.Groups[1]}'");
             mysql.Execute($"INSERT INTO businessinfo VALUES('{mobile}', {string.Join("\n", list.ToArray())})");

@@ -19,11 +19,15 @@ namespace Worker
         static void Main(string[] args)
         {
             string path = @"C:\Users\Wrg\Desktop\mobile11111111\我的表格1.txt";
-            PipeClient pipeClient = new PipeClient(args[0]);
-            string s = pipeClient.Receive();
-            if (s != "SYNC")
-                return;
-            path = pipeClient.Receive();
+
+            if (args.Length > 0)
+            {
+                PipeClient pipeClient = new PipeClient(args[0]);
+                string s = pipeClient.Receive();
+                if (s != "SYNC")
+                    return;
+                path = pipeClient.Receive();
+            }
 
             sw = new StreamWriter(Path.GetFileName(path), false, Encoding.Default) {AutoFlush = true};
             

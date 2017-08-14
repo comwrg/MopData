@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Pipe;
 
 namespace Broker
 {
@@ -21,9 +22,10 @@ namespace Broker
             InitializeComponent();
         }
 
+        private string beginTime;
         private void FormMain_Load(object sender, EventArgs ev)
         {
-            
+            beginTime = GetTime();
         }
 
         private void btn_open_Click(object sender, EventArgs e)
@@ -35,9 +37,13 @@ namespace Broker
         }
 
         private int num;
+        private Dictionary<string, bool> dic = new Dictionary<string, bool>();
         private void btn_begin_Click(object sender, EventArgs e)
         {
             var files = Directory.GetFiles(txt_path.Text, "*.txt");
+            dic = new Dictionary<string, bool>();
+            foreach (string file in files)
+                dic.Add(file, false);
             int max = int.Parse(txt_num.Text);
             Console.WriteLine(max);
             Task.Factory.StartNew(() =>
@@ -68,62 +74,40 @@ namespace Broker
 
         private void Worker(string path)
         {
-            Process pipeClient = new Process();
+            PipeServer pipeServer = new PipeServer("Worker.exe");
+            pipeServer.Send("SYNC");
+            pipeServer.Send(path);
+            pipeServer.WaitForExit();
+            dic[path] = true;
+        }
 
-            pipeClient.StartInfo.FileName = "Worker.exe";
+        private void FormMain_FormClosed(object sender, FormClosedEventArgs e)
+        {
+            #region Create Directory
 
-            using (AnonymousPipeServerStream pipeServer =
-                new AnonymousPipeServerStream(PipeDirection.Out,
-                    HandleInheritability.Inheritable))
+            if (dic.Count == 0)
+                return;
+
+            string b = $"./{beginTime}-{GetTime()}";
+            Directory.CreateDirectory(b);
+            string finish = $"{b}/已完成";
+            Directory.CreateDirectory(finish);
+            string nofinish = $"{b}/未完成";
+            Directory.CreateDirectory(nofinish);
+
+            #endregion
+
+            foreach (var d in dic)
             {
-                // Show that anonymous pipes do not support Message mode.
-                try
-                {
-                    //                    Console.WriteLine("[SERVER] Setting ReadMode to \"Message\".");
-                    pipeServer.ReadMode = PipeTransmissionMode.Byte;
-                }
-                catch (NotSupportedException e)
-                {
-                    //                    Console.WriteLine("[SERVER] Exception:\n    {0}", e.Message);
-                }
-
-                //                Console.WriteLine("[SERVER] Current TransmissionMode: {0}.",
-                //                    pipeServer.TransmissionMode);
-
-                // Pass the client process a handle to the server.
-                pipeClient.StartInfo.Arguments =
-                    pipeServer.GetClientHandleAsString();
-                pipeClient.StartInfo.UseShellExecute = false;
-                pipeClient.Start();
-
-                pipeServer.DisposeLocalCopyOfClientHandle();
-
-                try
-                {
-                    // Read user input and send that to the client process.
-                    using (StreamWriter sw = new StreamWriter(pipeServer))
-                    {
-                        sw.AutoFlush = true;
-                        // Send a 'sync message' and wait for client to receive it.
-                        sw.WriteLine("SYNC");
-                        sw.WriteLine(path);
-                        //                        pipeServer.WaitForPipeDrain();
-                        // Send the console input to the client process.
-                        //                        Console.Write("[SERVER] Enter text: ");
-                        //                        sw.WriteLine(Console.ReadLine());
-                    }
-                }
-                // Catch the IOException that is raised if the pipe is broken
-                // or disconnected.
-                catch (IOException e)
-                {
-                    Console.WriteLine("[SERVER] Error: {0}", e.Message);
-                }
+                File.Copy(d.Key, d.Value ? finish : nofinish);
             }
 
-            pipeClient.WaitForExit();
-            pipeClient.Close();
-//            Console.WriteLine("[SERVER] Client quit. Server terminating.");
+           
+        }
+
+        private string GetTime()
+        {
+            return $"{DateTime.Now:yyyyMMddHHmmss}";
         }
     }
 }

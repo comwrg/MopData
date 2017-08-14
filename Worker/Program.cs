@@ -14,6 +14,7 @@ using MopData;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Tranfer;
+using Pipe;
 
 namespace Worker
 {
@@ -22,59 +23,12 @@ namespace Worker
         
         static void Main(string[] args)
         {
-
             string path = @"C:\Users\Wrg\Desktop\mobile11111111\我的表格1.txt";
-            if (args.Length > 0)
-            {
-                using (PipeStream pipeClient =
-                    new AnonymousPipeClientStream(PipeDirection.In, args[0]))
-                {
-                    // Show that anonymous Pipes do not support Message mode.
-                    try
-                    {
-//                        Console.WriteLine("[CLIENT] Setting ReadMode to \"Message\".");
-                        pipeClient.ReadMode = PipeTransmissionMode.Byte;
-                    }
-                    catch (NotSupportedException e)
-                    {
-                        Console.WriteLine("[CLIENT] Execption:\n    {0}", e.Message);
-                    }
-
-//                    Console.WriteLine("[CLIENT] Current TransmissionMode: {0}.",
-//                        pipeClient.TransmissionMode);
-
-                    using (StreamReader sr = new StreamReader(pipeClient))
-                    {
-                        // Display the read text to the console
-                        string temp;
-
-                        // Wait for 'sync message' from the server.
-                        do
-                        {
-                            Console.WriteLine("[CLIENT] Wait for sync...");
-                            temp = sr.ReadLine();
-                        }
-                        while (!temp.StartsWith("SYNC"));
-
-                        // Read the server data and echo to the console.
-                        while ((temp = sr.ReadLine()) != null)
-                        {
-                            Console.WriteLine("[CLIENT] Echo: " + temp);
-                            path = temp;
-                            Console.WriteLine(path);
-                        }
-                    }
-                }
-            }
-//            Console.Write("[CLIENT] Press Enter to continue...");
-//            Console.ReadLine();
-
-//            for (int i = 0; i < 10; i++)
-//            {
-//                Console.WriteLine(i);
-//                Thread.Sleep(100);
-//            }
-//            return;
+            PipeClient pipeClient = new PipeClient(args[0]);
+            string s = pipeClient.Receive();
+            if (s != "SYNC")
+                return;
+            path = pipeClient.Receive();
 
             int num = 0;
             foreach (string mobile in File.ReadAllLines(path))

@@ -1,17 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Globalization;
 using System.IO;
-using System.IO.Pipes;
-using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using MopData;
-using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using Tranfer;
 using Pipe;

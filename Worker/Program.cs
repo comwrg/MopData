@@ -29,7 +29,8 @@ namespace Worker
                 path = pipeClient.Receive();
             }
 
-            sw = new StreamWriter(Path.GetFileName(path), false, Encoding.Default) {AutoFlush = true};
+            Directory.CreateDirectory("result");
+            sw = new StreamWriter($"result/{Path.GetFileName(path)}", false, Encoding.Default) {AutoFlush = true};
             
             int num = 0;
             foreach (string mobile in File.ReadAllLines(path))

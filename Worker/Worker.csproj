@@ -58,10 +58,6 @@
       <Project>{c9d99567-8d92-49f2-9654-b5a126d074ff}</Project>
       <Name>Pipe</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Tranfer\Tranfer.csproj">
-      <Project>{c1786592-b5a3-4830-8bf2-28e11d49f7bd}</Project>
-      <Name>Tranfer</Name>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

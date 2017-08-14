@@ -9,7 +9,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using MopData;
 using Newtonsoft.Json;
-using Tranfer;
 using Pipe;
 
 namespace Worker
@@ -26,6 +25,8 @@ namespace Worker
                 return;
             path = pipeClient.Receive();
 
+            sw = new StreamWriter(Path.GetFileName(path), false, Encoding.Default) {AutoFlush = true};
+            
             int num = 0;
             foreach (string mobile in File.ReadAllLines(path))
             {
@@ -51,78 +52,112 @@ namespace Worker
 //            Console.ReadKey();
         }
         static string url = File.ReadAllText("url.txt");
+        private static StreamWriter sw;
+        private static bool first = false;
         private static void Begin(string mobile)
         {
             Console.WriteLine(mobile);
             var m = new MopData.Mop(mobile, url);
+            List<string> temp = new List<string>();
+            List<string> headers = new List<string>();
+            List<string> items = new List<string>();
+
+            headers.Add("手机号");
+            items.Add(mobile);
 
             #region Base Info
 
             var res = Encoding.GetEncoding("GBK").GetString(m.GetBaseInfo().RawBytes);
             if (res.Contains("false"))
                 return;
-            var userInfo =
-                JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(
-                    res);
-            mysql.Execute($"INSERT INTO baseinfo (手机号) VALUES({mobile})");
-            foreach (UserBaseInfoJson.Basicinfo basicinfo in userInfo.userBaseInfo.basicinfo)
+            var userInfo = JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(res);
+            int[] arr = {0, 3, 4, 5, 6, 7, 11, 14};
+            foreach (int i in arr)
             {
-                mysql.Execute($"UPDATE baseinfo SET {basicinfo.title}='{basicinfo.context}'");
+                headers.Add(userInfo.userBaseInfo.basicinfo[i].title);
+                items.Add(userInfo.userBaseInfo.basicinfo[i].context);
             }
 
             #endregion
 
             #region Business Info
 
+            headers.Add("业务信息");
             var businessInfo = Encoding.GetEncoding("GBK").GetString(m.GetBusinessInfo().RawBytes);
             var mc = Regex.Matches(businessInfo, "secondvalue\":\"(.*?)\"");
-            List<string> list = new List<string>();
+            temp.Clear();
             foreach (Match match in mc)
-                list.Add($"'{match.Groups[1]}'");
-            mysql.Execute($"INSERT INTO businessinfo VALUES('{mobile}', {string.Join("\n", list.ToArray())})");
+                temp.Add($"'{match.Groups[1]}'");
+            items.Add(string.Join(" ", temp.ToArray()));
+            
             #endregion
 
             #region Consume Info
-            mysql.Execute($"INSERT INTO consumeinfo (手机号) VALUES('{mobile}')");
+            
             var consumeInfo = Encoding.GetEncoding("GBK").GetString(m.GetConsumeInfo().RawBytes);
-            mc = Regex.Matches(consumeInfo, "secondvalue\":\"(.*?)\"");
             string[] MONTH = { "一", "二", "三", "四", "五", "六", "七", "八", "九", "十", "十一", "十二" };
-            foreach (Match match in mc)
-            {
-                var str = match.Groups[1].Value;
-                var m1 = Regex.Match(str, @"(\d+) 月消费/(\d+\.\d+)");
-                if (m1.Success)
-                {
-                    var month = Convert.ToInt32(m1.Groups[1].Value);
-                    mysql.Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月消费={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
-                    //continue;
-                }
-                //secondvalue=201706/已使用优惠额度/2097.15 MB
-                m1 = Regex.Match(str, @"201\d(\d+)/已使用优惠额度.*?/(\d+\.\d+) ");
-                if (m1.Success)
-                {
-                    var month = Convert.ToInt32(m1.Groups[1].Value);
-                    mysql.Execute($"UPDATE consumeinfo SET {MONTH[month - 1]}月流量={m1.Groups[2].Value} WHERE 手机号='{mobile}'");
-                }
-            }
+            Match ma;
 
+            headers.Add("余额");
+            ma = Regex.Match(consumeInfo, @"当前余额/(\d+\.\d+)");
+            items.Add(ma.Success ? ma.Groups[1].Value : "0");
+
+            for (int i = 1; i < 13; i++)
+            {
+                ma = Regex.Match(consumeInfo, $"{i} 月消费/(.*?)\"");
+                headers.Add($"{MONTH[i - 1]}月消费");
+                items.Add(ma.Success ? ma.Groups[1].Value : "0");
+
+                ma = Regex.Match(consumeInfo, $@"201\d0?{i}/已使用优惠额度.*?/(\d+\.\d+) ");
+                headers.Add($"{MONTH[i - 1]}月流量");
+                items.Add(ma.Success ? ma.Groups[1].Value : "0");
+            }
+            
             #endregion
 
             #region Recommend Info
 
+            headers.Add("推荐信息");
             var recommendInfo = Encoding.GetEncoding("GBK").GetString(m.GetRecomendInfo().RawBytes);
             mc = Regex.Matches(recommendInfo, "prog_name\":\"(.*?)\"");
-            list.Clear();
+            temp.Clear();
             foreach (Match match in mc)
             {
                 var name = match.Groups[1].ToString();
                 if (!string.IsNullOrEmpty(name))
-                    list.Add(name);
+                    temp.Add(name);
             }
-            mysql.Execute($"INSERT INTO recommendinfo VALUES('{mobile}', '{string.Join("\n", list.ToArray())}')");
+            items.Add(string.Join(" ", temp.ToArray()));
+
+            headers.Add("终端类型");
+            ma = Regex.Match(recommendInfo, "terminal_type\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("绑定终端");
+            ma = Regex.Match(recommendInfo, "is_bound_terminal\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("换机时长(月)");
+            ma = Regex.Match(recommendInfo, "terminal_change_time\":\"(.*?)\"");
+            items.Add($"{ma.Groups[1].Value}");
+
+            headers.Add("是否办理宽带");
+            ma = Regex.Match(recommendInfo, "is_broad_band\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
 
             #endregion
+
+            if (!first)
+            {
+                sw.WriteLine(string.Join("\t", headers));
+                first = true;
+            }
+            lock (sw)
+            {
+                sw.WriteLine(string.Join("\t", items));
+                sw.Flush();
+            }
+            
         }
-        private static MysqlHelper mysql = new MysqlHelper();
     }
 }

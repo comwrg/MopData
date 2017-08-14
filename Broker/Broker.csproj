@@ -75,6 +75,10 @@
       <Project>{c9d99567-8d92-49f2-9654-b5a126d074ff}</Project>
       <Name>Pipe</Name>
     </ProjectReference>
+    <ProjectReference Include="..\Worker\Worker.csproj">
+      <Project>{822ceb15-a60b-4093-90a9-039fb26941b5}</Project>
+      <Name>Worker</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

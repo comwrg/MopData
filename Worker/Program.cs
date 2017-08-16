@@ -76,7 +76,7 @@ namespace Worker
             if (res.Contains("false"))
                 return;
             var userInfo = JsonConvert.DeserializeObject<UserBaseInfoJson.RootObject>(res);
-            int[] arr = {0, 3, 4, 5, 6, 7, 11, 14};
+            int[] arr = {0, 3, 4, 5, 6, 7, 10, 11, 14};
             foreach (int i in arr)
             {
                 headers.Add(userInfo.userBaseInfo.basicinfo[i].title);
@@ -149,6 +149,62 @@ namespace Worker
             headers.Add("是否办理宽带");
             ma = Regex.Match(recommendInfo, "is_broad_band\":\"(.*?)\"");
             items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否实名用户");
+            ma = Regex.Match(recommendInfo, "is_realname_user\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否智能机用户");
+            ma = Regex.Match(recommendInfo, "is_sphone_user\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否USIM卡用户");
+            ma = Regex.Match(recommendInfo, "is_usim_user\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否4G终端");
+            ma = Regex.Match(recommendInfo, "is_4g_client\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否4G套餐");
+            ma = Regex.Match(recommendInfo, "is_4g_base_product\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否4G客户");
+            ma = Regex.Match(recommendInfo, "is_4g_client\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否VoTLE终端用户");
+            ma = Regex.Match(recommendInfo, "is_votle_terminal\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("是否开通VoTLE服务");
+            ma = Regex.Match(recommendInfo, "is_votle_function\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value=="9" ? "未开通" : ma.Groups[1].Value);
+
+            headers.Add("是否宽带用户");
+            ma = Regex.Match(recommendInfo, "is_broad_band\":\"(.*?)\"");
+            items.Add(ma.Groups[1].Value);
+
+            headers.Add("卡槽类型");
+            ma = Regex.Match(recommendInfo, "is_double_card_slot\":\"(.*?)\"");
+            string str = ma.Groups[1].Value;
+            switch (str)
+            {
+                case "0":
+                    str = "非双槽客户";
+                    break;
+                case "1":
+                    str = "双槽双卡移动客户";
+                    break;
+                case "2":
+                    str = "双槽双卡移动异网客户";
+                    break;
+                case "3":
+                    str = "双槽单卡移动客户";
+                    break;
+            }
+            items.Add(str);
 
             #endregion
 

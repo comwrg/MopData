@@ -180,7 +180,7 @@ namespace Worker
 
             headers.Add("是否开通VoTLE服务");
             ma = Regex.Match(recommendInfo, "is_votle_function\":\"(.*?)\"");
-            items.Add(ma.Groups[1].Value=="9" ? "未开通" : ma.Groups[1].Value);
+            items.Add(ma.Groups[1].Value.Contains("9") ? "未开通" : ma.Groups[1].Value));
 
             headers.Add("是否宽带用户");
             ma = Regex.Match(recommendInfo, "is_broad_band\":\"(.*?)\"");

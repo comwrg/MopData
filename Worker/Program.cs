@@ -124,7 +124,7 @@ namespace Worker
 
             headers.Add("推荐信息");
             var recommendInfo = Encoding.GetEncoding("GBK").GetString(m.GetRecomendInfo().RawBytes);
-            mc = Regex.Matches(recommendInfo, "prog_name\":\"(.*?)\"");
+            mc = Regex.Matches(recommendInfo, "grade_name\":\"(.*?)\"");
             temp.Clear();
             foreach (Match match in mc)
             {

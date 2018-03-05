@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -134,7 +135,7 @@ func main() {
 		}
 
 		for i := 0; i < tailTop; i++ {
-			tail := zfill(string(i), tailWidth)
+			tail := zfill(strconv.Itoa(i), tailWidth)
 			mobile := ln + tail
 			sqlite.Insert(mobile)
 			go handle(mobile)

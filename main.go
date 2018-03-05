@@ -78,7 +78,7 @@ func zfill(str string, width int) (string){
 	for i := 0; i < width - len(str); i++ {
 		str = "0" + str
 	}
-	return str
+	return str[:width]
 }
 
 func handle(mobile string) {

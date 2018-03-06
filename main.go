@@ -183,6 +183,7 @@ func main() {
 	}
 
 	for numGoroutine < runtime.NumGoroutine() {
+		Info.Println("Waiting...", runtime.NumGoroutine())
 		time.Sleep(time.Minute)
 	}
 	Info.Println("Finish!")

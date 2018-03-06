@@ -9,6 +9,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"runtime"
 	"strconv"
 	"strings"
 	"time"
@@ -87,22 +88,41 @@ func handle(mobile string) {
 	userInfo := mop.JSONuserInfo{}
 	err = mp.Query(mobile, &userInfo)
 	check("query userInfo err.", err)
+	if !userInfo.Success {
+		return
+	}
+	err = sqlite.UpdateUserInfo(mobile, mop.FilterUserInfo(&userInfo))
+	check("sqlite update userInfo err.", err)
 
 	businessInfo := mop.JSONbusinessInfo{}
 	err = mp.Query(mobile, &businessInfo)
 	check("query businessInfo err.", err)
+	filterBusinessInfo, err := mop.FilterBusinessInfo(&businessInfo)
+	check("filterBusinessInfo err.", err)
+	err = sqlite.UpdateBusinessInfo(mobile, filterBusinessInfo)
+	check("updataBussinessInfo err.", err)
 
 	consumeInfo := mop.JSONconsumeInfo{}
 	err = mp.Query(mobile, &consumeInfo)
 	check("query consumeInfo err.", err)
+	filterConsumeInfo, err := mop.FilterConsumeInfo(&consumeInfo)
+	check("filterConsumeInfo err.", err)
+	err = sqlite.UpdateConsumeInfo(mobile, filterConsumeInfo)
+	check("updataConsumeInfo err.", err)
 
 	userBaseInfo := mop.JSONuserBaseInfo{}
 	err = mp.Query(mobile, &userBaseInfo)
 	check("query userBaseInfo err.", err)
+	filterUserBaseInfo, err := mop.FilterUserBaseInfo(&userBaseInfo)
+	check("filterUserBaseInfo err.", err)
+	err = sqlite.UpdateUserBaseInfo(mobile, filterUserBaseInfo)
+	check("updateUserBaseInfo err.", err)
 
 }
 
 func main() {
+	numGoroutine := runtime.NumGoroutine()
+	
 	err := sqlite.Init()
 	check("sqlite init failed.", err)
 
@@ -142,6 +162,9 @@ func main() {
 		}
 	}
 
+	for numGoroutine < runtime.NumGoroutine() {
+		time.Sleep(time.Minute)
+	}
 	Info.Println("Finish!")
 	exit()
 }

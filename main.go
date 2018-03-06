@@ -142,8 +142,6 @@ func handle(mobile string) {
 }
 
 func main() {
-	numGoroutine := runtime.NumGoroutine()
-
 	err := sqlite.Init()
 	check("sqlite init failed.", err)
 
@@ -183,9 +181,16 @@ func main() {
 		}
 	}
 
-	for numGoroutine < runtime.NumGoroutine() {
-		Info.Println("Waiting...", runtime.NumGoroutine())
-		time.Sleep(time.Minute)
+	lastNum := 0
+	for {
+		nowNum := runtime.NumGoroutine()
+		if lastNum == nowNum {
+			break
+		} else {
+			Info.Println("Waiting...", nowNum)
+			time.Sleep(30 * time.Second)
+			lastNum = nowNum
+		}
 	}
 	Info.Println("Finish!")
 	exit()

@@ -76,7 +76,8 @@ func check(msg string, err error) {
 }
 
 func zfill(str string, width int) (string){
-	for i := 0; i < width - len(str); i++ {
+	fillWidth := width - len(str)
+	for i := 0; i < fillWidth; i++ {
 		str = "0" + str
 	}
 	return str[:width]
@@ -142,7 +143,7 @@ func handle(mobile string) {
 
 func main() {
 	numGoroutine := runtime.NumGoroutine()
-	
+
 	err := sqlite.Init()
 	check("sqlite init failed.", err)
 

@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"github.com/comwrg/mop-go"
-	_"github.com/mattn/go-sqlite3"
 	"io/ioutil"
 	"log"
 	"net/http"

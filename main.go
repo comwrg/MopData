@@ -141,6 +141,8 @@ func handle(mobile string) {
 }
 
 func main() {
+	runtime.GOMAXPROCS(runtime.NumCPU())
+
 	err := sqlite.Init()
 	check("sqlite init failed.", err)
 

@@ -37,7 +37,7 @@ func getConf() (mobile string, pwd string, err error) {
 }
 
 func getVc(mobile string, pwd string) (vc string, err error) {
-	url := "http://144.48.7.239:1228/getvc?mobile={mobile}&pwd={pwd}"
+	url := "http://144.48.7.239:1838/getvc?mobile={mobile}&pwd={pwd}"
 	url = strings.Replace(url, "{mobile}", mobile, 1)
 	url = strings.Replace(url, "{pwd}", pwd, 1)
 	client := http.Client{}

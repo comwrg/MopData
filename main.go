@@ -92,6 +92,7 @@ func handle(mobile string) {
 			return
 		}
 		if err != nil {
+			runtime.Gosched()
 			continue
 		}
 		err = sqlite.UpdateUserInfo(mobile, mop.FilterUserInfo(&userInfo))
@@ -103,6 +104,7 @@ func handle(mobile string) {
 		businessInfo := mop.JSONbusinessInfo{}
 		err = mp.Query(mobile, &businessInfo)
 		if err != nil {
+			runtime.Gosched()
 			continue
 		}
 		filterBusinessInfo, err := mop.FilterBusinessInfo(&businessInfo)
@@ -116,6 +118,7 @@ func handle(mobile string) {
 		consumeInfo := mop.JSONconsumeInfo{}
 		err = mp.Query(mobile, &consumeInfo)
 		if err != nil {
+			runtime.Gosched()
 			continue
 		}
 		filterConsumeInfo, err := mop.FilterConsumeInfo(&consumeInfo)
@@ -129,6 +132,7 @@ func handle(mobile string) {
 		userBaseInfo := mop.JSONuserBaseInfo{}
 		err = mp.Query(mobile, &userBaseInfo)
 		if err != nil {
+			runtime.Gosched()
 			continue
 		}
 		filterUserBaseInfo, err := mop.FilterUserBaseInfo(&userBaseInfo)

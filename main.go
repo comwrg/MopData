@@ -177,7 +177,8 @@ func main() {
 		for i := 0; i < tailTop; i++ {
 			tail := zfill(strconv.Itoa(i), tailWidth)
 			mobile := ln + tail
-			sqlite.Insert(mobile)
+			err := sqlite.Insert(mobile)
+			check("sqlite insert err.", err)
 			go handle(mobile)
 		}
 	}

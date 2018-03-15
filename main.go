@@ -183,6 +183,7 @@ func main() {
 			mobile := ln + tail
 			err := sqlite.Insert(mobile)
 			check("sqlite insert err.", err)
+			Info.Println(mobile)
 			go handle(mobile)
 		}
 	}
